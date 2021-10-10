@@ -1,5 +1,6 @@
 ### Utility functions and classes
 import spacy
+from spacy.lang.en import English
 from spacy.matcher import PhraseMatcher
 
 
@@ -18,21 +19,26 @@ class PubmedArticle(object):
         
         # Get abstract node
         self.__abstract_node = get_object_from_article("Abstract", self.__article_node)
-        
-        # Get journal node
-        self.__journal_node = get_object_from_article("Journal", self.__article_node)
-                
-        # Get journal's title in string
-        self.__journal_title = get_object_from_article("Title", self.__journal_node).text
-        
+                        
         # Get article's title in string
         self.__article_title = article_title_node.text
 
         # Gather all text string in abstract node and concate into a single string
         self.__abstract_text = self.parse_abstract_text()
 
+        self.__title_doc = NLP(self.__article_title)
+        self.__abstract_doc = NLP(self.__abstract_text)
+
         self.contain_title = False
         self.contain_abstract = False
+        
+        self.__title_tokenized = [tk for tk in self.__title_doc]
+        self.__abstract_tokenized = [tk for tk in self.__abstract_doc]
+        
+        self.num_of_chr_abstract = self.count_abstract_chrs()
+        
+        self.__title_matches = []
+        self.__abstract_matches = []
         
     @property
     def article_title(self):
@@ -43,16 +49,32 @@ class PubmedArticle(object):
         print("\"Getting concatnated abstract text ... \"")
         return self.__abstract_text
     
+    @property
+    def abstract_doc(self):
+        return self.__abstract_doc
+    
+    @property
+    def title_doc(self):
+        return self.__title_doc
+    
+    @property
+    def num_of_words_in_abs(self):
+        return len(list(self.__abstract_tokenized))
+    
+    def count_abstract_chrs(self):
+        tk_string = "".join([tk.text for tk in self.__abstract_tokenized])
+        return len(tk_string)
+    
     def check_terms(self, terms):
         
-        title_match = match(terms, self.__article_title)
+        self.__title_matches = match(terms, self.__article_title)
         
-        abstract_match = match(terms, self.__abstract_text)
+        self.__abstract_matches = match(terms, self.__abstract_text)
     
-        if len(title_match) > 0:
+        if len(self.__title_matches) > 0:
             self.contain_title = True
         
-        if len(abstract_match) > 0:
+        if len(self.__abstract_matches) > 0:
             self.contain_abstract = True
     
     def parse_abstract_text(self):
@@ -67,20 +89,11 @@ class PubmedArticle(object):
             text += node.text + " "
 
         return text
-        
-
-def lemmatize(text):
-    lemmatizer = NLP.get_pipe("lemmatizer")
-    print("Lemmatizer Mode: {}".format(lemmatizer.mode))
-    
-    doc = NLP(text)
-    
-    return [(token.text, token.lemma_) for token in doc]    
 
 
 def match(terms, text):
     
-    matcher = PhraseMatcher(NLP.vocab)
+    matcher = PhraseMatcher(NLP.vocab, attr="LOWER")
     
     patterns = [NLP.make_doc(tx) for tx in terms]
     matcher.add("TerminologyList", patterns)

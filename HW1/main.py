@@ -2,19 +2,34 @@
 import os
 from glob import glob
 import xml.etree.cElementTree as ET
-from prompt_toolkit import print_formatted_text, HTML, PromptSession
+import yaml
 
+from prompt_toolkit import HTML, PromptSession
+from prompt_toolkit import print_formatted_text as print
 import utility as utils
 
 session = PromptSession()
 
+# load configuration
+def load_config():
+    with open("config.yaml", "r") as reader:
+        config = yaml.safe_load(reader)
+    
+    return config
 
 def main():
     
-    doc_folder = session.prompt("Enter the folder where the XML documents are located: ")
+    config = load_config()
+    
+    # Load and process configuration
+    if config['APP']['FOLDER_USE_CONFIG'] is True:
+        doc_folder = config['FOLDER']
+    else:
+        doc_folder = session.prompt("Enter the folder where the XML documents are located: ")
+    
     articles = load_documents(doc_folder)
 
-    keywords = session.prompt("Enter Keyword to Search: ")
+    keywords = session.prompt("\nEnter Keyword to Search: ")
     terms = keywords.strip(" ").split(",")
     
     contain_list = []
@@ -32,8 +47,19 @@ def main():
     
     print("")
     for art in contain_list:
-        print(art.article_title + "\n")
+        if art.contain_title is True:
+            pass
+        else:
+            print(art.article_title+"\n")
+            print("# of Words in Abstract: {}".format(art.num_of_words_in_abs))
+            print("# of Characters in Abstract: {}".format(art.num_of_chr_abstract))
+            print("# of Sentences in Abstract: {}\n".format(len(list(art.abstract_doc.sents))))
 
+def get_ptk_formatted_text(doc):
+
+    text = [token.text for token in doc]
+    
+    
 def load_documents(folder):
 
     file_list = []
