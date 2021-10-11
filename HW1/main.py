@@ -2,10 +2,12 @@
 import os
 from glob import glob
 import xml.etree.cElementTree as ET
+from prompt_toolkit.shortcuts.utils import clear
 import yaml
 
 from prompt_toolkit import HTML, PromptSession
 from prompt_toolkit import print_formatted_text as print
+from prompt_toolkit.formatted_text import FormattedText
 import utility as utils
 
 session = PromptSession()
@@ -17,15 +19,22 @@ def load_config():
     
     return config
 
-def main():
-    
-    config = load_config()
-    
+
+def get_doc_folder(config):
     # Load and process configuration
     if config['APP']['FOLDER_USE_CONFIG'] is True:
         doc_folder = config['FOLDER']
     else:
         doc_folder = session.prompt("Enter the folder where the XML documents are located: ")
+    
+    return doc_folder
+
+
+def main():
+    
+    config = load_config()
+    
+    doc_folder = get_doc_folder(config)
     
     articles = load_documents(doc_folder)
 
@@ -47,15 +56,31 @@ def main():
     
     print("")
     for art in contain_list:
-        if art.contain_title is True:
-            pass
-        else:
-            print(art.article_title+"\n")
+        if art.contain_title is True or art.contain_abstract is True:
+            
+            if art.contain_title is True:
+                formatted_title = FormattedText(art.get_formatted_title())
+                print(formatted_title)
+                print("")
+            else:
+                print(FormattedText([("#ffffff", art.article_title+"\n")]))
+                
+            if art.contain_abstract is True:
+                formatted_abs = FormattedText(art.get_formatted_abstract())
+                print(formatted_abs)
+                print("")
+            else:
+                pass
+            
             print("# of Words in Abstract: {}".format(art.num_of_words_in_abs))
             print("# of Characters in Abstract: {}".format(art.num_of_chr_abstract))
             print("# of Sentences in Abstract: {}\n".format(len(list(art.abstract_doc.sents))))
+            print("--"*80+"\n")
+        else: 
+            pass
+        
 
-def get_ptk_formatted_text(doc):
+def get_ptk_formatted_text(doc):clear
 
     text = [token.text for token in doc]
     
@@ -84,26 +109,23 @@ def load_documents(folder):
     
     return article_list
     
-def test_load_documents():
-    folder = session.prompt("Enter Test Document Folder: ")
+def tests():
+    config = load_config()
+    folder = get_doc_folder(config)
     articles = load_documents(folder)
     
-    print("")
-    print(articles[-1].article_title)
-    print("")
+    assert articles[-1].article_title == "Qualitative study of the psychological experience of COVID-19 patients during hospitalization."
 
-    text = articles[-1].abstract_text
-    
-    if text is not None:
-        test_lemmatize = utils.lemmatize(text)
-        
     terms = ["COVID-19", "patients"]
 
-    utils.match(terms, text)
-    
     articles[-1].check_terms(terms)
-    print(articles[-1].contain_title)
-    print(articles[-1].contain_abstract)
-
+    assert articles[-1].contain_title is True
+    assert articles[-1].contain_abstract is True
+    
+    formatted = FormattedText(articles[-1].get_formatted_abstract())
+    
+    print(formatted)
+    
+        
 if __name__ == "__main__":
     main()

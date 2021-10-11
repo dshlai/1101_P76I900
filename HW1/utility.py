@@ -61,8 +61,40 @@ class PubmedArticle(object):
     def num_of_words_in_abs(self):
         return len(list(self.__abstract_tokenized))
     
+    def get_formatted_title(self):
+        
+        formatted_title = []
+        begin = 0
+        
+        for _, start, end in self.__title_matches:
+            # no style applied
+            formatted_title.append(("#ffffff bold", self.title_doc[begin:start].text_with_ws))
+            
+            # apply style to matched text
+            formatted_title.append(("#aa9922 bold", self.title_doc[start:end].text_with_ws))
+            begin = end
+            
+        return formatted_title
+    
+    def get_formatted_abstract(self):
+        
+        formatted_text = []
+        begin = 0
+        
+        for _, start, end in self.__abstract_matches:
+            
+            # no style apply for this portion
+            formatted_text.append(("", self.abstract_doc[begin:start].text_with_ws))
+        
+            # apply style to matched text
+            formatted_text.append(("#ff0066", self.abstract_doc[start:end].text_with_ws))
+            begin = end
+            
+        return formatted_text
+    
     def count_abstract_chrs(self):
         tk_string = "".join([tk.text for tk in self.__abstract_tokenized])
+    
         return len(tk_string)
     
     def check_terms(self, terms):
@@ -86,7 +118,7 @@ class PubmedArticle(object):
         text = ""
         
         for node in text_list:
-            text += node.text + " "
+            text += node.text + "\n\n"
 
         return text
 
