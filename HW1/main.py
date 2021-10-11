@@ -79,11 +79,6 @@ def main():
         else: 
             pass
         
-
-def get_ptk_formatted_text(doc):clear
-
-    text = [token.text for token in doc]
-    
     
 def load_documents(folder):
 
@@ -108,7 +103,8 @@ def load_documents(folder):
     article_list = [utils.PubmedArticle(at) for at in article_list]
     
     return article_list
-    
+
+
 def tests():
     config = load_config()
     folder = get_doc_folder(config)
