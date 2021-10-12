@@ -55,26 +55,34 @@ def main():
             pass
     
     print("")
+    print("Number of Matched Abstract or Title Found: {}".format(len(contain_list)))
+    print("")
+    
+    counter = 1
     for art in contain_list:
-        
+
+            print("--"*20+"\n"+"{}.\n".format(counter)+"--"*20+"\n")
+            
             if art.contain_title is True:
                 formatted_title = FormattedText(art.get_formatted_title())
-                print(formatted_title)
-                print("")
+                print(formatted_title)  
             else:
                 print(FormattedText([("#ffffff", art.article_title+"\n")]))
-                
+            
+            print("")
+             
             if art.contain_abstract is True:
                 formatted_abs = FormattedText(art.get_formatted_abstract())
                 print(formatted_abs)
-                print("")
             else:
                 print(art.abstract_text)
             
             print("# of Words in Abstract: {}".format(art.num_of_words_in_abs))
             print("# of Characters in Abstract: {}".format(art.num_of_chr_abstract))
             print("# of Sentences in Abstract: {}\n".format(len(list(art.abstract_doc.sents))))
-            print("--"*80+"\n")
+            print("")
+            
+            counter += 1
         
     
 def load_documents(folder):
