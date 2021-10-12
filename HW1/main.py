@@ -61,14 +61,21 @@ def main():
     counter = 1
     for art in contain_list:
 
-            print("--"*20+"\n"+"{}.\n".format(counter)+"--"*20+"\n")
+            title_len = len(art.article_title) + 5
+            sep = "-"*title_len+"\n"
+            print(sep)
             
             if art.contain_title is True:
-                formatted_title = FormattedText(art.get_formatted_title())
+                formatted_title = [("", "{}.  ".format(counter))]
+                formatted_title.extend(art.get_formatted_title())
+                formatted_title = FormattedText(formatted_title)
+                title_len = len(formatted_title)
                 print(formatted_title)  
             else:
-                print(FormattedText([("#ffffff", art.article_title+"\n")]))
-            
+                print(FormattedText([("#ffffff",  "{}.  ".format(counter)+art.article_title+"\n")]))
+                
+            print("")
+            print(sep)
             print("")
              
             if art.contain_abstract is True:
