@@ -46,7 +46,6 @@ class PubmedArticle(object):
     
     @property
     def abstract_text(self):
-        print("\"Getting concatnated abstract text ... \"")
         return self.__abstract_text
     
     @property
@@ -73,6 +72,8 @@ class PubmedArticle(object):
             # apply style to matched text
             formatted_title.append(("#aa9922 bold", self.title_doc[start:end].text_with_ws))
             begin = end
+        
+        formatted_title.append(("#ffffff bold", self.title_doc[end:].text_with_ws))
             
         return formatted_title
     
@@ -89,7 +90,9 @@ class PubmedArticle(object):
             # apply style to matched text
             formatted_text.append(("#ff0066", self.abstract_doc[start:end].text_with_ws))
             begin = end
-            
+        
+        formatted_text.append(("", self.abstract_doc[end:].text_with_ws))
+        
         return formatted_text
     
     def count_abstract_chrs(self):

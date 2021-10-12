@@ -56,8 +56,7 @@ def main():
     
     print("")
     for art in contain_list:
-        if art.contain_title is True or art.contain_abstract is True:
-            
+        
             if art.contain_title is True:
                 formatted_title = FormattedText(art.get_formatted_title())
                 print(formatted_title)
@@ -70,14 +69,12 @@ def main():
                 print(formatted_abs)
                 print("")
             else:
-                pass
+                print(art.abstract_text)
             
             print("# of Words in Abstract: {}".format(art.num_of_words_in_abs))
             print("# of Characters in Abstract: {}".format(art.num_of_chr_abstract))
             print("# of Sentences in Abstract: {}\n".format(len(list(art.abstract_doc.sents))))
             print("--"*80+"\n")
-        else: 
-            pass
         
     
 def load_documents(folder):
