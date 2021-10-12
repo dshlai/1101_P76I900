@@ -11,6 +11,8 @@ class PubmedArticle(object):
     
     def __init__(self, article):
         
+        self.is_json = False
+        
         # Store PubMed article node
         self.__article_node = article
         
@@ -39,7 +41,7 @@ class PubmedArticle(object):
         
         self.__title_matches = []
         self.__abstract_matches = []
-        
+    
     @property
     def article_title(self):
         return self.__article_title
@@ -58,7 +60,30 @@ class PubmedArticle(object):
     
     @property
     def num_of_words_in_abs(self):
-        return len(list(self.__abstract_tokenized))
+        return token_count(self.abstract_text)
+    
+    def explain(self):
+        tok_exp = NLP.tokenizer.explain(self.abstract_text)
+        
+        tk_count = 0
+        sf_count = 0
+        pf_count = 0
+        if_count = 0
+        
+        for tok in tok_exp:
+            print(tok[1] + "\t" + tok[0])
+            if tok[0] == "SUFFIX":
+                sf_count += 1
+            elif tok[0] == "PREFIX":
+                pf_count += 1
+            elif tok[0] == "TOKEN":
+                tk_count += 1
+            elif tok[0] == "INFIX":
+                if_count += 1
+        
+        print("Token#: {}, SUFFIX_#: {}, PREFIX_#: {}, INFIX_#:{}, TOTAL: {}".format(tk_count, 
+                                                                                  sf_count, pf_count, if_count, 
+                                                                                  tk_count+sf_count+pf_count+if_count))
     
     def get_formatted_title(self):
         
@@ -124,6 +149,52 @@ class PubmedArticle(object):
             text += node.text + "\n\n"
 
         return text
+
+
+class JsonArticle(object):
+    def __init__(self, jo):
+        jo = jo[0]
+        self.name = jo['username']
+        self.__raw_text = " ".join([v for v in jo.values()])
+        self.__text = jo['tweet_text']
+        
+        self.__raw_doc = NLP(self.__raw_text)
+        self.__doc = NLP(self.__text)
+        
+        self.article_title = self.name
+        self.contain_title = False
+        self.contain_abstract = False
+        
+        self.is_json = True
+        
+    @property
+    def text(self):
+        return self.__doc.text
+    
+    @property
+    def number_of_word_in_tweet(self):
+        return token_count(self.__text)
+
+    @property
+    def number_of_sents(self):
+        return len(list(self.__doc.sents))
+    
+    def check_terms(self, terms):
+        self.contain_text = False
+        self.__text_matches = match(terms, self.__text)
+        if len(self.__text_matches) > 0:
+            self.contain_text = True
+
+
+def token_count(text):
+    tok_exp = NLP.tokenizer.explain(text)
+    tk_count = 0
+    
+    for tk in tok_exp:
+        if tk[0] == "TOKEN":
+            tk_count +=1
+    
+    return tk_count
 
 
 def match(terms, text):

@@ -4,6 +4,7 @@ from glob import glob
 import xml.etree.cElementTree as ET
 from prompt_toolkit.shortcuts.utils import clear
 import yaml
+import json
 
 from prompt_toolkit import HTML, PromptSession
 from prompt_toolkit import print_formatted_text as print
@@ -37,11 +38,14 @@ def main():
     doc_folder = get_doc_folder(config)
     
     articles = load_documents(doc_folder)
+    json_articles = load_json_docs(doc_folder)
 
     keywords = session.prompt("\nEnter Keyword to Search: ")
     terms = keywords.strip(" ").split(",")
     
     contain_list = []
+    xml_doc_list = []
+    json_doc_list = []
     
     for art in articles:
         
@@ -49,13 +53,23 @@ def main():
         
         if art.contain_title is True :
             contain_list.append(art)
+            xml_doc_list.append(art)
         elif art.contain_abstract is True:
             contain_list.append(art)
+            xml_doc_list.append(art)
         else:
             pass
     
+    for ja in json_articles:
+        ja.check_terms(terms)
+        if ja.contain_text is True:
+            contain_list.append(ja)
+            json_doc_list.append(ja)
+    
+    
     print("")
-    print("Number of Matched Abstract or Title Found: {}".format(len(contain_list)))
+    print("Number of Matched PubMed articles Found: {}".format(len(xml_doc_list)))
+    print("Number of Twitter text Matched: {}".format(len(json_doc_list)))
     print("")
     
     counter = 1
@@ -77,7 +91,14 @@ def main():
             print("")
             print(sep)
             print("")
-             
+            
+            if art.is_json is True:
+                print(art.text+"\n")
+                print("# of Words in Tweet: {}".format(art.number_of_word_in_tweet))
+                print("# of Sentences in Twiiter: {}\n".format(art.number_of_sents))
+                counter += 1
+                continue
+            
             if art.contain_abstract is True:
                 formatted_abs = FormattedText(art.get_formatted_abstract())
                 print(formatted_abs)
@@ -90,7 +111,23 @@ def main():
             print("")
             
             counter += 1
+
+    #print(contain_list[0].explain())
+
+def load_json_docs(folder):
+    json_list = []
+    for f in glob("{}/*.json".format(folder)):
+        json_list.append(f)
         
+    json_doc_list = []
+    
+    for fp in json_list:
+        with open(fp) as reader:
+            data = json.load(reader)
+            j_doc = utils.JsonArticle(data)
+            json_doc_list.append(j_doc)
+
+    return json_doc_list
     
 def load_documents(folder):
 
@@ -105,7 +142,7 @@ def load_documents(folder):
         tree = ET.parse(f)
         root = tree.getroot()
         doc_list.append(root)
-    
+
     article_list = []
     
     for doc in doc_list:
