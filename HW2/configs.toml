@@ -1,3 +1,6 @@
 
 [Collection]
 path="/disk/datassd/datasets/CORD19/metadata.csv"
+
+[Cloud]
+url="https://storage.googleapis.com/p76i900hw2/data/"
