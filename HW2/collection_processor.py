@@ -16,8 +16,8 @@ nlp = spacy.load("en_core_web_sm")
 configs = toml.load("configs.toml")
 collection_path = configs['Collection']['path']
 
-num_of_rows = 1000
 
+num_of_rows = None
 def load_abstracts():
     cols_for_metadata = ["title", "journal", "authors", "abstract"]
     metadata_df = pd.read_csv(collection_path, usecols=cols_for_metadata, nrows=num_of_rows)
@@ -35,10 +35,8 @@ def process_single_abstract(text):
     """
     doc = nlp(text)
     
-    # eliminate number and punctuation
-    words = [tk for tk in doc if tk.is_alpha]
-    # lemmatize the words
-    words = [tk.lemma_ for tk in words]
+    # eliminate number and punctuation and lemmatize
+    words = [tk.lemma_ for tk in doc if tk.is_alpha]
     
     # count freq using python Counter
     counter = Counter(words)
@@ -53,8 +51,10 @@ def main():
     begin = time.time()
     df = load_abstracts()
     
+    loading_time = time.time() - begin
     print("Finished Load Abstracts")
-    
+    print("Loading metadata.csv takes: {}".format(loading_time))
+
     abs_list = df['abstract'].tolist()
     
     with Pool() as p:
@@ -62,7 +62,9 @@ def main():
     
     print("{} abstracts in metadata.csv".format(len(abs_list)))
     print("Processed All Abstracts")
-    
+    proc_time = time.time() - loading_time
+    print("Process time: {}".format(proc_time))
+
     result = pd.concat(results)
     result = result.groupby('word').sum('freq').sort_values('freq', ascending=False)
     
