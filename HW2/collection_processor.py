@@ -11,13 +11,15 @@ from collections import Counter
 from multiprocessing import Pool
 import time
 
+from nltk.stem.snowball import SnowballStemmer
+
 nlp = spacy.load("en_core_web_sm")
 
 configs = toml.load("configs.toml")
 collection_path = configs['Collection']['path']
-
-
 num_of_rows = None
+
+
 def load_abstracts():
     cols_for_metadata = ["title", "journal", "authors", "abstract"]
     metadata_df = pd.read_csv(collection_path, usecols=cols_for_metadata, nrows=num_of_rows)
@@ -26,7 +28,7 @@ def load_abstracts():
     df_abstract = metadata_df.dropna(subset=["abstract"])
     
     return df_abstract
-    
+
 
 def process_single_abstract(text):
     """
@@ -46,6 +48,19 @@ def process_single_abstract(text):
     
     return counter_df
 
+
+def stemming_single_abstract(text):
+    sstemer = SnowballStemmer(language='english')
+    doc = nlp(text)
+    
+    stemmed = [sstemer.stem(tk.text) for tk in doc if tk.is_alpha]
+    counter = Counter(stemmed)
+    
+    counter = [(w, freq) for w, freq in counter.items()]
+    counter_df = pd.DataFrame(counter, columns=['word', 'freq'])
+    
+    return counter_df
+    
 
 def main():
     begin = time.time()
