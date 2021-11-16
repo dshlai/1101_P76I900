@@ -29,5 +29,11 @@ def tokenize_single_doc(doc):
     return tks
 
 
+def bin_to_kv():
+    model = Word2Vec.load("skip_model_cord19_covid_55k.bin")
+    wv = model.wv
+    wv.save("skip_model_cord19_covid_55k.kv")
+
+
 if __name__ == "__main__":
-    train()
+    bin_to_kv()
