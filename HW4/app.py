@@ -18,7 +18,7 @@ options = st.multiselect("What Corpus you want to compare?", default=["TV", "Foo
 selection_a = st.selectbox(label="Select a Document from {}".format(options[0]), options=[1,2,3,4])
 selection_b = st.selectbox(label="Select a Document from {}".format(options[1]), options=[1,2,3,4])
 
-dist_metirc = st.selectbox(label="Select a Distance Metrics", options=["L1", "L2", "Cosine"])
+dist_metirc = st.selectbox(label="Select a Distance Metrics", options=["L1", "L2", "Cosine"], index=2)
 
 corpus_4cls = textacy.Corpus.load("en_core_web_trf", "../../models/P76I900/HW4/wikinews_4cls_corpus.bin.gz")
 
@@ -41,6 +41,8 @@ label_dict = {"TV": tv_class, "Food": food_class, "Health": health_class, "Polit
 
 metrics_dict = {"L1": manhattan_distances, "Cosine": cosine_distances, "L2": euclidean_distances}
 
+index_dict = {"TV": 0, "Food": 200, "Health": 200+141, "Politics": 200+141+200}
+
 if len(options) < 2:
     st.write("Cannot compare less than 2 Corpus")
 else:
@@ -58,13 +60,16 @@ else:
     tokenized = ((term.lemma_ for term in textacy.extract.terms(doc, ngs=1, ents=True, ncs=True, dedupe=True)) for doc in compare_list)
     dot_cls = vectorizer.fit_transform(tokenized)
 
-    st.write(corpus_dict[options[0]][selection_a])
-    st.write(corpus_dict[options[1]][selection_b])
+    st.write("Document From Corpus {}:\n\n".format(options[0]) + corpus_dict[options[0]][selection_a-1].text)
+    st.write("Document From Corpus {}:\n\n".format(options[1]) + corpus_dict[options[1]][selection_b-1].text)
 
     dm = metrics_dict[dist_metirc]
 
-    a = dot_cls[selection_a-1].toarray()
-    b = dot_cls[selection_b-1].toarray()
+    index_a = index_dict[options[0]]
+    index_b = index_dict[options[1]]
+
+    a = dot_cls[selection_a-1+index_a].toarray()
+    b = dot_cls[selection_b-1+index_b].toarray()
 
     dist = dm(a,b)[0][0]
     st.subheader("Distance between documents is {}".format(dist))
